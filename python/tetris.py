@@ -10,6 +10,9 @@ HEIGHT = 20
 class Tertris():
     # Initialization
     def __init__(self,width,height):
+        self.reset()
+    
+    def reset(self):
         self.width = width
         self.height = height
         self.pannel = []
