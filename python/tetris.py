@@ -27,6 +27,7 @@ class Tertris():
         self.generate_random_blocks(4)
         self.score = 0
         self.alive = True
+        return self.get_state()
     # Kill the full line and add empty line on the top then return the eliminated count, return -1 if dead
     def round_finished(self):
 
@@ -262,7 +263,7 @@ class Tertris():
         block_state = []
         block = copy.deepcopy(self.current_block)
         block = self.standarlize_block(block,4)
-        print(block)
+        #print(block)
         for i in range(len(block)):
             block_state = block_state + block[i]
         return pannel_state + block_state
