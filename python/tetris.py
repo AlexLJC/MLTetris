@@ -245,8 +245,44 @@ class Tertris():
         for i in range(len(self.current_block)):
             print(self.current_block[i])
 
-    # For ML
-    
+    # For Reinforcement Learning
+    def get_state(self):
+        # Pannel State
+        pannel_state = []
+        for i in range(len(self.pannel)):
+            pannel_state = pannel_state + self.pannel[i]
+        # Block State
+        block_state = []
+        block = copy.deepcopy(self.current_block)
+        block = self.standarlize_block(block)
+        #print(block)
+        for i in range(len(block)):
+            block_state = block_state + block[i]
+        return pannel_state + block_state
+
+    # steps = [rotate_times,right_move_steps]
+    def step_action(self,steps):
+        for i in range(steps[0]):
+            self.rotate()
+        for i in range(steps[1]):
+            self.rightmove()
+        bonus = self.down()
+        next_state = self.get_state()
+        reward = bonus
+        done = True
+        if self.alive is True:
+            done = False
+        else:
+            reward = 0 - 5 * 5
+        info = {
+            "pannel":self.pannel,
+            "block":self.current_block
+        }
+        return next_state,reward,done,info
+        
+    # For presentation
+    def render(self):
+        pass
 
 if __name__ == '__main__':
     tertris_test = Tertris(WIDTH,HEIGHT)
@@ -269,15 +305,15 @@ if __name__ == '__main__':
         
         #print(tertris_test.get_lowest_none_zero(0)) # Pass
         #print(tertris_test.get_highest_none_zero(0)) # Pass
-        tertris_test.down()
+        # tertris_test.down()
 
         print("RightMove====")
-        tertris_test.rightmove()
-        tertris_test.rightmove()
+        # tertris_test.rightmove()
+        # tertris_test.rightmove()
         
         #tertris_test.print_block()
-        tertris_test.down()
-        tertris_test.print_pannel()
+        # tertris_test.down()
+        # tertris_test.print_pannel()
 
         #tertris_test.print_block()
         
@@ -314,3 +350,5 @@ if __name__ == '__main__':
         tertris_test.down()
         tertris_test.print_pannel()
         '''
+        tertris_test.step_action([0,4])
+        tertris_test.print_pannel()
