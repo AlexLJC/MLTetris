@@ -1,6 +1,7 @@
 import random
 import datetime
 import numpy as np
+import copy
 # Consistent Var
 WIDTH = 10
 HEIGHT = 20
@@ -20,13 +21,19 @@ class Tertris():
             self.pannel.append(line_temp)
         random.seed(datetime.datetime.now().timestamp())
         self.current_block_x = 0
-        self.current_block = self.generate_random_blocks(4)
-    # Kill the full line and add empty line on the top then return the eliminated count
+        self.generate_random_blocks(4)
+        self.score = 0
+        self.alive = True
+    # Kill the full line and add empty line on the top then return the eliminated count, return -1 if dead
     def round_finished(self):
+
+        score = 0
+        # Check if dead or not
+
         new_pannel = []
         count = 0
         for i in range(self.height):
-            if any(self.pannel[i]) == 0:
+            if 0 in self.pannel[i]:
                 new_pannel.append(self.pannel[i])
             else:
                 count+=1
@@ -36,7 +43,9 @@ class Tertris():
                 line_temp.append(0)
             new_pannel.insert(0,line_temp)
         self.pannel = new_pannel
-        return count ** count
+        score = count * count
+        self.score = self.score + score
+        return score
 
     # Generate a volume * volume pannel of block
     def generate_random_blocks(self,volume = 4):
@@ -68,7 +77,6 @@ class Tertris():
                     point_temp = [point[0]-1,point[1]]
                 if point_temp not in points:
                     invalid = False
-                    #print(dir)
                     pre_dir = dir
                     points.append(point_temp)
                     point = point_temp
@@ -94,8 +102,9 @@ class Tertris():
             pannel_temp.append(line_temp)
         for point_temp in points:
             pannel_temp[point_temp[0]][point_temp[1]] = 1
-        
-        return self.simplify_block(pannel_temp)
+        self.current_block = self.simplify_block(pannel_temp)
+        # self.current_block = [[1,1],[1,1]] # Test eliminate
+        return self.current_block
     
     def simplify_block(self,block):
         def submatrix(a):
@@ -115,7 +124,8 @@ class Tertris():
         return pannel_temp.tolist()
 
     # Rotate
-    def rotate(self,block_pannel):
+    def rotate(self):
+        block_pannel = self.current_block
         block_pannel = self.standarlize_block(block_pannel)
         total_row = len(block_pannel)
         real_matrix = [block_pannel[col][total_row - 1 - row] for row in range(total_row -1, -1, -1) for col in range(total_row - 1, -1, -1)]
@@ -131,29 +141,176 @@ class Tertris():
     def rightmove(self):
         result = False
         # Check the boarder
-        if self.current_block_x + 1 + len(self.current_block[0]) < self.width: 
+        if self.current_block_x + 1 + len(self.current_block[0]) <= self.width: 
             self.current_block_x = self.current_block_x + 1
             result = True
         return result
     
-    def down(self):
+    # For Block
+    def get_lowest_none_zero(self,x):
+        block_height = len(self.current_block)
+        i = len(self.current_block) -1 
+        value = self.current_block[i][x]
+        while(value ==0 and i>0):
+            i = i-1
+            value = self.current_block[i][x]
+        return i   
+
+    # For Game Pannel
+    def get_highest_none_zero(self,x):
+        
+        i = 0 
+        value = self.pannel[i][x]
+
+
+        for i in range(self.height):
+            value = self.pannel[i][x]
+            if value > 0:
+                return i
+
+        return self.height
+            
         
 
-        
+    # abx aby are the absolute location of x,y of pannel
+    def place_block(self,abx,aby,x,y):
+        block_height = len(self.current_block)   
+        block_width = len(self.current_block[0])
+        pannel_temp = copy.deepcopy(self.pannel)
+        result = True
+        over_top = False
+        for i in range(block_height):
+            y_temp = block_height - i -1
+            y_cor = y_temp - y
+            aby_cor = aby + y_cor
+            for j in range(block_width):
+                x_temp = block_width - j -1
+                x_cor = x_temp - x
+                abx_cor = abx + x_cor
+                # print("searching",aby_cor,abx_cor,y_temp,x_temp)
+                if aby_cor >= self.height or abx_cor >= self.width:
+                    result = False
+                    break
+                if aby_cor < 0 or abx_cor < 0:
+                    over_top = True
+                pannel_temp[aby_cor][abx_cor] = pannel_temp[aby_cor][abx_cor] + self.current_block[y_temp][x_temp]
+                if pannel_temp[aby_cor][abx_cor] > 1:
+                    result = False
+                    break
+            
+            if result is False:
+                break
+        if result is False:
+            pass
+        else:
+            self.pannel = pannel_temp
+            # Check if it is dead
+            if over_top is True:
+                # Dead
+                self.alive = False
+        return result
+
+    def down(self):
+        block_width = len(self.current_block[0])
+        placed = False
+        for x in range(block_width):
+            # Find the lowest none zero
+            y = self.get_lowest_none_zero(x)
+            abs_x = x + self.current_block_x
+            abs_y = self.get_highest_none_zero(abs_x) - 1
+            # Try to get there
+            # print("try",abs_x,abs_y,x,y)
+            
+            if self.place_block(abs_x,abs_y,x,y) is True:
+                placed = True
+                break
+        if placed is False:
+            self.alive = False        
         bonus = self.round_finished()
+        print("bonus",bonus)
         # Generat next block
         if bonus >=0 : 
             # Alive
             self.generate_random_blocks(4)
         return bonus
 
+    # For Debug
+    def print_pannel(self):
+        print("Pannel====")
+        for i in range(len(self.pannel)):
+            print(self.pannel[i])
+    
+    def print_block(self):
+        print("Block====")
+        for i in range(len(self.current_block)):
+            print(self.current_block[i])
+
+    # For ML
+    
+
 if __name__ == '__main__':
     tertris_test = Tertris(WIDTH,HEIGHT)
     for i in range(1):
+        print("NewBlock====")
         block_pannel = tertris_test.generate_random_blocks()
-        for i in range(len(block_pannel)):
-            print(block_pannel[i])
-        print("====")
-        block_pannel = tertris_test.rotate(block_pannel)
-        for i in range(len(block_pannel)):
-            print(block_pannel[i])
+        tertris_test.print_block()
+
+        print("Rotate====")
+        block_pannel = tertris_test.rotate()
+
+        print("Rotate====")
+        block_pannel = tertris_test.rotate()
+        
+        print("Rotate====")
+        block_pannel = tertris_test.rotate()
+        
+        print("Rotate====")
+        block_pannel = tertris_test.rotate()
+        
+        #print(tertris_test.get_lowest_none_zero(0)) # Pass
+        #print(tertris_test.get_highest_none_zero(0)) # Pass
+        tertris_test.down()
+
+        print("RightMove====")
+        tertris_test.rightmove()
+        tertris_test.rightmove()
+        
+        #tertris_test.print_block()
+        tertris_test.down()
+        tertris_test.print_pannel()
+
+        #tertris_test.print_block()
+        
+        # Test Dead
+        # while tertris_test.alive is True:
+        #     tertris_test.down()
+        #     tertris_test.print_pannel()
+       
+
+        # Test Eliminate
+        '''
+        tertris_test.rightmove()
+        tertris_test.rightmove()
+        tertris_test.rightmove()
+        tertris_test.rightmove()
+        tertris_test.down()
+        tertris_test.print_pannel()
+        tertris_test.rightmove()
+        tertris_test.rightmove()
+        tertris_test.rightmove()
+        tertris_test.rightmove()
+        tertris_test.rightmove()
+        tertris_test.rightmove()
+        tertris_test.down()
+        tertris_test.print_pannel()
+        tertris_test.rightmove()
+        tertris_test.rightmove()
+        tertris_test.rightmove()
+        tertris_test.rightmove()
+        tertris_test.rightmove()
+        tertris_test.rightmove()
+        tertris_test.rightmove()
+        tertris_test.rightmove()
+        tertris_test.down()
+        tertris_test.print_pannel()
+        '''
