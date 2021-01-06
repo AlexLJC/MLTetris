@@ -290,6 +290,10 @@ class Tertris():
     # For presentation
     def render(self):
         pass
+    
+    def random_action(self):
+        action = [random.randint(0, 3),random.randint(0,8)]
+        return action
 
 if __name__ == '__main__':
     tertris_test = Tertris(WIDTH,HEIGHT)
