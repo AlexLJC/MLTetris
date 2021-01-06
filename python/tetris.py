@@ -112,15 +112,19 @@ class Tertris():
         pannel_temp = submatrix(np.array(block) )
         return pannel_temp.tolist()
 
-    def standarlize_block(self,block):
+    def standarlize_block(self,block,force_dim = 0):
          
         pannel_temp = np.array(block) 
-        max_h_w = max( pannel_temp.shape[0],pannel_temp.shape[1])
-        min_h_w = min( pannel_temp.shape[0],pannel_temp.shape[1])
-        if pannel_temp.shape[0] - pannel_temp.shape[1] > 0:
-            pannel_temp =  np.pad(pannel_temp, ((0,0),(max_h_w - min_h_w,0)), 'constant')
-        if pannel_temp.shape[0] - pannel_temp.shape[1] < 0:
-            pannel_temp =  np.pad(pannel_temp, ((max_h_w - min_h_w,0),(0,0)), 'constant')
+        if force_dim !=0:
+            pannel_temp =  np.pad(pannel_temp, ((force_dim - pannel_temp.shape[0],0),(force_dim - pannel_temp.shape[1],0)), 'constant')
+            
+        else:
+            max_h_w = max( pannel_temp.shape[0],pannel_temp.shape[1])
+            min_h_w = min( pannel_temp.shape[0],pannel_temp.shape[1])
+            if pannel_temp.shape[0] - pannel_temp.shape[1] > 0:
+                pannel_temp =  np.pad(pannel_temp, ((0,0),(max_h_w - min_h_w,0)), 'constant')
+            if pannel_temp.shape[0] - pannel_temp.shape[1] < 0:
+                pannel_temp =  np.pad(pannel_temp, ((max_h_w - min_h_w,0),(0,0)), 'constant')
         return pannel_temp.tolist()
 
     # Rotate
@@ -254,8 +258,8 @@ class Tertris():
         # Block State
         block_state = []
         block = copy.deepcopy(self.current_block)
-        block = self.standarlize_block(block)
-        #print(block)
+        block = self.standarlize_block(block,4)
+        print(block)
         for i in range(len(block)):
             block_state = block_state + block[i]
         return pannel_state + block_state
@@ -350,5 +354,7 @@ if __name__ == '__main__':
         tertris_test.down()
         tertris_test.print_pannel()
         '''
-        tertris_test.step_action([0,4])
+        next_state,reward,done,info = tertris_test.step_action([0,4])
         tertris_test.print_pannel()
+        #print(len(next_state))
+        tertris_test.print_block()
