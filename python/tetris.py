@@ -9,17 +9,17 @@ HEIGHT = 20
 
 class Tertris():
     # Initialization
-    def __init__(self,width,height):
+    def __init__(self,width=WIDTH,height= HEIGHT):
+        self.width = width
+        self.height = height
         self.reset()
     
     def reset(self):
-        self.width = width
-        self.height = height
         self.pannel = []
         # Initialize Pannel
-        for i in range(height):
+        for i in range(self.height):
             line_temp = []
-            for j in range(width):
+            for j in range(self.width):
                 line_temp.append(0)
             self.pannel.append(line_temp)
         random.seed(datetime.datetime.now().timestamp())
@@ -27,6 +27,7 @@ class Tertris():
         self.generate_random_blocks(4)
         self.score = 0
         self.alive = True
+        self.total_steps = 0
         return self.get_state()
     # Kill the full line and add empty line on the top then return the eliminated count, return -1 if dead
     def round_finished(self):
@@ -47,7 +48,7 @@ class Tertris():
                 line_temp.append(0)
             new_pannel.insert(0,line_temp)
         self.pannel = new_pannel
-        score = count * count
+        score = count * count + 1
         self.score = self.score + score
         return score
 
@@ -235,11 +236,12 @@ class Tertris():
         if placed is False:
             self.alive = False        
         bonus = self.round_finished()
-        print("bonus",bonus)
+        #print("bonus",bonus)
         # Generat next block
         if bonus >=0 : 
             # Alive
             self.generate_random_blocks(4)
+            self.total_steps += 1
         return bonus
 
     # For Debug
@@ -270,9 +272,13 @@ class Tertris():
 
     # steps = [rotate_times,right_move_steps]
     def step_action(self,steps):
-        for i in range(steps[0]):
+        # print(type(steps))
+        rotate_t = int(steps%4)
+        move = int(steps/4)
+
+        for i in range(rotate_t):
             self.rotate()
-        for i in range(steps[1]):
+        for i in range(move):
             self.rightmove()
         bonus = self.down()
         next_state = self.get_state()
@@ -281,10 +287,11 @@ class Tertris():
         if self.alive is True:
             done = False
         else:
-            reward = 0 - 5 * 5
+            reward = -10
         info = {
             "pannel":self.pannel,
-            "block":self.current_block
+            "block":self.current_block,
+            "steps":self.total_steps
         }
         return next_state,reward,done,info
         
