@@ -24,17 +24,15 @@ class Tertris():
             self.pannel.append(line_temp)
         random.seed(datetime.datetime.now().timestamp())
         self.current_block_x = 0
-        self.generate_random_blocks(4)
+        self._generate_random_blocks(4)
         self.score = 0
         self.alive = True
         self.total_steps = 0
         return self.get_state()
     # Kill the full line and add empty line on the top then return the eliminated count, return -1 if dead
     def round_finished(self):
-
         score = 0
         # Check if dead or not
-
         new_pannel = []
         count = 0
         for i in range(self.height):
@@ -48,65 +46,117 @@ class Tertris():
                 line_temp.append(0)
             new_pannel.insert(0,line_temp)
         self.pannel = new_pannel
-        score = count * count + 1
+        score = count *   100 + 1
         self.score = self.score + score
         return score
 
     # Generate a volume * volume pannel of block
-    def generate_random_blocks(self,volume = 4):
-        self.current_block_x = 0
-        point = [0,0]
-        points = [point]
-        pre_dir = random.randint(0,3)
-        min_x = 0
-        min_y = 0
-        dir_list_test = []
-        for step in range(volume-1):
-            dir = random.randint(0,3)
-            # Pick random Point
-            point = points[random.randint(0,len(points)-1)]
-            invalid = True
-            while(invalid is True):
-                dir = random.randint(0,3) 
-                if dir == (pre_dir+2) % 4:
-                    dir = (pre_dir+4) % 4
+    def _generate_random_blocks(self,volume = 4,hardness = 0):
+        # self.current_block_x = 0
+        # point = [0,0]
+        # points = [point]
+        # pre_dir = random.randint(0,3)
+        # min_x = 0
+        # min_y = 0
+        # dir_list_test = []
+        # for step in range(volume-1):
+        #     dir = random.randint(0,3)
+        #     # Pick random Point
+        #     point = points[random.randint(0,len(points)-1)]
+        #     invalid = True
+        #     while(invalid is True):
+        #         dir = random.randint(0,3) 
+        #         if dir == (pre_dir+2) % 4:
+        #             dir = (pre_dir+4) % 4
              
-                point_temp = []
-                if dir == 0:
-                    point_temp = [point[0],point[1]+1]
-                if dir == 1:
-                    point_temp = [point[0]+1,point[1]]
-                if dir == 2:
-                    point_temp = [point[0],point[1]-1]
-                if dir == 3:
-                    point_temp = [point[0]-1,point[1]]
-                if point_temp not in points:
-                    invalid = False
-                    pre_dir = dir
-                    points.append(point_temp)
-                    point = point_temp
-                    dir_list_test.append(dir)
-                    break
+        #         point_temp = []
+        #         if dir == 0:
+        #             point_temp = [point[0],point[1]+1]
+        #         if dir == 1:
+        #             point_temp = [point[0]+1,point[1]]
+        #         if dir == 2:
+        #             point_temp = [point[0],point[1]-1]
+        #         if dir == 3:
+        #             point_temp = [point[0]-1,point[1]]
+        #         if point_temp not in points:
+        #             invalid = False
+        #             pre_dir = dir
+        #             points.append(point_temp)
+        #             point = point_temp
+        #             dir_list_test.append(dir)
+        #             break
             
-            if point_temp[0] < min_x:
-                min_x = point_temp[0] 
-            if point_temp[1] < min_y:
-                min_y = point_temp[1] 
-        points_temp = [] 
-        for point_temp in points:
-            point_temp[0] = point_temp[0] - min_x
-            point_temp[1] = point_temp[1] - min_y
-            points_temp.append(point_temp)
-        points = points_temp
+        #     if point_temp[0] < min_x:
+        #         min_x = point_temp[0] 
+        #     if point_temp[1] < min_y:
+        #         min_y = point_temp[1] 
+        # points_temp = [] 
+        # for point_temp in points:
+        #     point_temp[0] = point_temp[0] - min_x
+        #     point_temp[1] = point_temp[1] - min_y
+        #     points_temp.append(point_temp)
+        # points = points_temp
+
+        # pannel_temp = []
+        # for i in range(volume):
+        #     line_temp = []
+        #     for j in range(volume):
+        #         line_temp.append(0)
+        #     pannel_temp.append(line_temp)
+        # for point_temp in points:
+        #     pannel_temp[point_temp[0]][point_temp[1]] = 1
+        # print(pannel_temp)
+        # #exit(0)
+        # self.current_block = self.simplify_block(pannel_temp)
+        # # self.current_block = [[1,1],[1,1]] # Test eliminate
+        # #return self.current_block
+
+        self.current_block_x = 0
 
         pannel_temp = []
-        for i in range(volume):
-            line_temp = []
-            for j in range(volume):
-                line_temp.append(0)
-            pannel_temp.append(line_temp)
-        for point_temp in points:
-            pannel_temp[point_temp[0]][point_temp[1]] = 1
+        block_template = []
+        block_1 = [[1,1,0,0],[1,1,0,0],[0,0,0,0], [0,0,0,0]]
+        block_2 = [[1,1,1,1],[0,0,0,0],[0,0,0,0], [0,0,0,0]]
+        block_3 = [[0,1,0,0],[1,1,1,0],[0,0,0,0], [0,0,0,0]]
+        block_4 = [[1,0,0,0],[1,1,1,0],[0,0,0,0], [0,0,0,0]]
+        block_5 = [[0,0,1,0],[1,1,1,0],[0,0,0,0], [0,0,0,0]]
+        block_template.append(block_1)
+        block_template.append(block_2)
+        block_template.append( block_3)
+        block_template.append(block_4)
+        block_template.append(block_5)
+        if hardness == 0:
+            pannel_temp = block_template[0]
+        elif hardness == 1:
+            pannel_temp = block_template[random.randint(1,1)]
+        elif hardness == 2:
+            pannel_temp = block_template[random.randint(2,2)]
+        elif hardness == 3:
+            pannel_temp = block_template[random.randint(3,3)]
+        elif hardness == 4:
+            pannel_temp = block_template[random.randint(4,4)]
+        elif hardness == 5:
+            pannel_temp = block_template[random.randint(0,1)]
+        elif hardness == 6:
+            pannel_temp = block_template[random.randint(1,2)]
+        elif hardness == 7:
+            pannel_temp = block_template[random.randint(2,3)]
+        elif hardness == 8:
+            pannel_temp = block_template[random.randint(3,4)]
+        elif hardness == 9:
+            pannel_temp = block_template[random.randint(0,2)]
+        elif hardness == 10:
+            pannel_temp = block_template[random.randint(1,3)]
+        elif hardness == 11:
+            pannel_temp = block_template[random.randint(2,4)]
+        elif hardness == 12:
+            pannel_temp = block_template[random.randint(0,3)]
+        elif hardness == 13:
+            pannel_temp = block_template[random.randint(1,4)]
+        else:
+            pannel_temp = block_template[random.randint(0,4)]
+
+        #print(pannel_temp)
         self.current_block = self.simplify_block(pannel_temp)
         # self.current_block = [[1,1],[1,1]] # Test eliminate
         return self.current_block
@@ -240,7 +290,7 @@ class Tertris():
         # Generat next block
         if bonus >=0 : 
             # Alive
-            self.generate_random_blocks(4)
+            self._generate_random_blocks(4,int(self.total_steps / 30))
             self.total_steps += 1
         return bonus
 
@@ -273,7 +323,7 @@ class Tertris():
     # steps = [rotate_times,right_move_steps]
     def step_action(self,steps):
         # print(type(steps))
-        rotate_t = int(steps%4)
+        rotate_t = steps%4
         move = int(steps/4)
 
         for i in range(rotate_t):
@@ -305,28 +355,29 @@ class Tertris():
 
 if __name__ == '__main__':
     tertris_test = Tertris(WIDTH,HEIGHT)
-    for i in range(1):
+    tertris_test.print_pannel()
+    for i in range(10):
         print("NewBlock====")
-        block_pannel = tertris_test.generate_random_blocks()
+        block_pannel = tertris_test._generate_random_blocks()
         tertris_test.print_block()
 
-        print("Rotate====")
-        block_pannel = tertris_test.rotate()
+        #print("Rotate====")
+        #block_pannel = tertris_test.rotate()
 
-        print("Rotate====")
-        block_pannel = tertris_test.rotate()
+        #print("Rotate====")
+        #block_pannel = tertris_test.rotate()
         
-        print("Rotate====")
-        block_pannel = tertris_test.rotate()
+        #print("Rotate====")
+        #block_pannel = tertris_test.rotate()
         
-        print("Rotate====")
-        block_pannel = tertris_test.rotate()
+        #print("Rotate====")
+        #block_pannel = tertris_test.rotate()
         
         #print(tertris_test.get_lowest_none_zero(0)) # Pass
         #print(tertris_test.get_highest_none_zero(0)) # Pass
         # tertris_test.down()
 
-        print("RightMove====")
+        #print("RightMove====")
         # tertris_test.rightmove()
         # tertris_test.rightmove()
         
@@ -369,7 +420,8 @@ if __name__ == '__main__':
         tertris_test.down()
         tertris_test.print_pannel()
         '''
-        next_state,reward,done,info = tertris_test.step_action([0,4])
+        next_state,reward,done,info = tertris_test.step_action(24)
         tertris_test.print_pannel()
-        #print(len(next_state))
-        tertris_test.print_block()
+        # print(next_state)
+        # print(reward,done,info)
+        #tertris_test.print_block()
